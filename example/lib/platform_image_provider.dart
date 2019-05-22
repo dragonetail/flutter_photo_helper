@@ -1,23 +1,17 @@
 import 'dart:async';
-import 'dart:io';
 import 'dart:typed_data';
 import 'dart:ui' as ui show Codec;
-import 'dart:ui' show Size, Locale, TextDirection, hashValues;
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/painting.dart';
 
 import 'package:flutter_photo_helper/flutter_photo_helper.dart';
 
-// import 'binding.dart';
-// import 'image_cache.dart';
-// import 'image_stream.dart';
-
 class PlatformImageProvider extends ImageProvider<PlatformImageProvider> {
   const PlatformImageProvider(this.assetId,
-      {this.section, this.row, this.width, this.height, this.scale = 1.0})
-      : assert(assetId != null),
+      {this.width, this.height, this.scale = 1.0})
+      : cacheKey = "$assetId${width}x$height",
+        assert(assetId != null),
         assert(scale != null);
 
   static ImageLruCache<String> thumbnailCache = ImageLruCache<String>(500);
@@ -28,11 +22,13 @@ class PlatformImageProvider extends ImageProvider<PlatformImageProvider> {
   /// The scale to place in the [ImageInfo] object of the image.
   final double scale;
 
-  final int section;
-  final int row;
+  // final int section;
+  // final int row;
 
   final int width;
   final int height;
+
+  final String cacheKey;
 
   @override
   Future<PlatformImageProvider> obtainKey(ImageConfiguration configuration) {
@@ -53,7 +49,7 @@ class PlatformImageProvider extends ImageProvider<PlatformImageProvider> {
   Future<ui.Codec> _loadAsync(PlatformImageProvider key) async {
     assert(key == this);
 
-    Uint8List data = thumbnailCache.getData(assetId);
+    Uint8List data = thumbnailCache.getData(cacheKey);
     if (data == null) {
       //print("requestThumbnail: $section:$row, $assetId");
       ByteData byteData =
@@ -61,9 +57,9 @@ class PlatformImageProvider extends ImageProvider<PlatformImageProvider> {
       data = byteData.buffer.asUint8List();
       if (data.lengthInBytes == 0) {
         throw Exception(
-            'PlatformImage is an empty file: $section:$row,  $assetId');
+            'PlatformImage is an empty file: $assetId');
       }
-      thumbnailCache.setData(assetId, data);
+      thumbnailCache.setData(cacheKey, data);
     }
     //print("requestThumbnail' result: $section:$row, $assetId, ${data.lengthInBytes}");
 
@@ -85,5 +81,5 @@ class PlatformImageProvider extends ImageProvider<PlatformImageProvider> {
 
   @override
   String toString() =>
-      '$runtimeType("$assetId", scale: $scale), width: $width), height: $height), section: $section), row: $row)';
+      '$runtimeType("$assetId", scale: $scale), width: $width), height: $height))';
 }

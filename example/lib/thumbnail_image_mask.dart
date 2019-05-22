@@ -35,12 +35,12 @@ class _ThumbnailImageMaskState extends State<ThumbnailImageMask> {
   Widget build(BuildContext context) {
     return GestureDetector(
       onScaleStart: (ScaleStartDetails details) {
-        print(
-            "ThumbnailImageMask.onScaleStart: $details ${details.focalPoint.dx}");
+        // print(
+        //     "ThumbnailImageMask.onScaleStart: $details ${details.focalPoint.dx}");
       },
       onScaleUpdate: (ScaleUpdateDetails details) {
-        print(
-            "ThumbnailImageMask.onScaleUpdate: $this $details ${details.focalPoint.dx}");
+        // print(
+            // "ThumbnailImageMask.onScaleUpdate: $this $details ${details.focalPoint.dx}");
         var isSelected = widget.selectedProvider.containsEntity(widget.asset);
         if (!isSelected) {
           changeCheck(true, widget.asset);

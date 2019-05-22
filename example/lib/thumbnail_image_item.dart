@@ -65,7 +65,7 @@ class ThumbnailImageItem extends StatelessWidget {
           child: FadeInImage(
             placeholder: MemoryImage(kTransparentImage),
             image: PlatformImageProvider(asset.id,
-                width: 200, height: 200, section: section, row: row),
+                width: 200, height: 200),
             width: 200,
             height: 200,
             fit: BoxFit.cover,

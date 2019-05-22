@@ -149,12 +149,16 @@ public class PhotosHelper: NSObject {
           }
         })
 
-      if(PHInvalidImageRequestID == requestId) {
-        DispatchQueue.main.async {
+      DispatchQueue.main.async {
+        if(PHInvalidImageRequestID == requestId) {
           if let _ = messenger {
             result(false)
           } else {
             result(nil)
+          }
+        } else {
+          if let _ = messenger {
+            result(true)
           }
         }
       }

@@ -2,6 +2,8 @@ import 'dart:typed_data';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_photo_helper/flutter_photo_helper.dart';
+import 'package:transparent_image/transparent_image.dart';
+import './platform_image_provider.dart';
 
 class ImageViewerPage extends StatefulWidget {
   static const route = '/imageViewer';
@@ -48,11 +50,25 @@ class _ImageViewerState extends State<ImageViewerPage> {
   }
 
   Widget _buildItem(BuildContext context, int index) {
+    var width = (MediaQuery.of(context).size.width * 2).floor();
+    var height = (MediaQuery.of(context).size.height * 2).floor();
+
     var asset = widget.assets[index];
-    return BigPhotoImage(
-      asset: asset,
-      loadingWidget: _buildLoadingWidget(asset),
+    return FadeInImage(
+      placeholder: MemoryImage(kTransparentImage),
+      image: PlatformImageProvider(asset.id, width: width, height: height),
+      fit: BoxFit.contain,
+      width: double.infinity,
+      height: double.infinity,
+      fadeOutDuration: const Duration(milliseconds: 0),
+      fadeOutCurve: Curves.easeOut,
+      fadeInDuration: const Duration(milliseconds: 0),
+      fadeInCurve: Curves.elasticIn,
     );
+    //     BigPhotoImage(
+    //   asset: asset,
+    //   loadingWidget: _buildLoadingWidget(asset),
+    // );
   }
 
   Widget _buildLoadingWidget(DeviceAsset asset) {
@@ -60,9 +76,9 @@ class _ImageViewerState extends State<ImageViewerPage> {
       child: Container(
         width: 30.0,
         height: 30.0,
-        child: CircularProgressIndicator(
-          valueColor: AlwaysStoppedAnimation(Colors.green),
-        ),
+        // child: CircularProgressIndicator(
+        //   valueColor: AlwaysStoppedAnimation(Colors.green),
+        // ),
       ),
     );
   }
@@ -94,18 +110,17 @@ class _BigPhotoImageState extends State<BigPhotoImage>
 
   @override
   Widget build(BuildContext context) {
-    var width = (MediaQuery.of(context).size.width *2).floor();
+    var width = (MediaQuery.of(context).size.width * 2).floor();
     var height = (MediaQuery.of(context).size.height * 2).floor();
-    print("requestThumbnail: ${widget.asset.id}");
+    //print("requestThumbnail: ${widget.asset.id}");
     return FutureBuilder(
-      future:
-           FlutterPhotoHelper.thumbnail(widget.asset.id, width, height),
+      future: FlutterPhotoHelper.thumbnail(widget.asset.id, width, height),
       builder: (BuildContext context, AsyncSnapshot<ByteData> snapshot) {
         var futureData = snapshot.data;
         if (snapshot.connectionState == ConnectionState.done &&
             futureData != null) {
-          print(
-              "requestThumbnail' result: ${widget.asset.id}, ${futureData.lengthInBytes}");
+          // print(
+          //     "requestThumbnail' result: ${widget.asset.id}, ${futureData.lengthInBytes}");
           Uint8List data = futureData.buffer.asUint8List();
           return Image.memory(
             data,
