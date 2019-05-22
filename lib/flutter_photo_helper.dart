@@ -1,13 +1,5 @@
-import 'dart:async';
-
-import 'package:flutter/services.dart';
-
-class FlutterPhotoHelper {
-  static const MethodChannel _channel =
-      const MethodChannel('flutter_photo_helper');
-
-  static Future<String> get platformVersion async {
-    final String version = await _channel.invokeMethod('getPlatformVersion');
-    return version;
-  }
-}
+export 'plugin_main.dart';
+export 'cache/lru_cache.dart';
+export 'device/device_asset_path.dart';
+export 'device/device_asset.dart';
+export 'device/device_grouped_assets.dart';

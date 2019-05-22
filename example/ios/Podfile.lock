@@ -1,0 +1,22 @@
+PODS:
+  - Flutter (1.0.0)
+  - flutter_photo_helper (0.1.0):
+    - Flutter
+
+DEPENDENCIES:
+  - Flutter (from `.symlinks/flutter/ios`)
+  - flutter_photo_helper (from `.symlinks/plugins/flutter_photo_helper/ios`)
+
+EXTERNAL SOURCES:
+  Flutter:
+    :path: ".symlinks/flutter/ios"
+  flutter_photo_helper:
+    :path: ".symlinks/plugins/flutter_photo_helper/ios"
+
+SPEC CHECKSUMS:
+  Flutter: 9d0fac939486c9aba2809b7982dfdbb47a7b0296
+  flutter_photo_helper: 9c6e0c1c2b638e11c5acaa18b304bf364f72edfc
+
+PODFILE CHECKSUM: 68d1eb92cd6872a0036927aea384514021e84c62
+
+COCOAPODS: 1.5.3

@@ -1,8 +1,8 @@
 name: flutter_photo_helper
-description: A new flutter plugin project.
-version: 0.0.1
-author:
-homepage:
+description: Flutter Photo Helper.
+version: 0.1.0
+author: dragonetail@gmail.com
+homepage: http://www.blackharry.com/
 
 environment:
   sdk: ">=2.1.0 <3.0.0"
@@ -10,6 +10,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  intl: ^0.15.7
 
 dev_dependencies:
   flutter_test:
