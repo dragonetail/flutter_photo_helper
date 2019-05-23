@@ -24,6 +24,8 @@ class _AssetPathListState extends State<AssetPathListPage> {
     await FlutterPhotoHelper.permissions;
     _deviceAssetPathes = await FlutterPhotoHelper.deviceAssetPathes;
 
+    FlutterPhotoHelper.startHandleNotify();
+
     if (this.mounted) {
       setState(() {});
     }

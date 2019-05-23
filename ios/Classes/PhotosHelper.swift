@@ -144,7 +144,7 @@ public class PhotosHelper: NSObject {
             messenger.send(onChannel: "\(SwiftFlutterPhotoHelperPlugin.plugin_name)/image/\(assetId).\(dataBackChannelSuffix)", message:
               imageData)
           } else {
-            let filePath: String = writeToFile(assetId, dataBackChannelSuffix, imageData)
+            let filePath: String? = writeToFile(assetId, dataBackChannelSuffix, imageData)
             result(filePath)
           }
         })
@@ -165,12 +165,21 @@ public class PhotosHelper: NSObject {
     }
   }
 
-  fileprivate static func writeToFile(_ assetId: String, _ dataBackChannelSuffix: String, _ imageData: Data?) -> String {
-    let url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(assetId).\(dataBackChannelSuffix)")
-    let filePath: String = url.absoluteString
-    fileManager.createFile(atPath: filePath, contents: imageData, attributes: nil)
+  fileprivate static func writeToFile(_ assetId: String, _ dataBackChannelSuffix: String, _ imageData: Data?) -> String? {
+    var url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(dataBackChannelSuffix)")
+    do {
+      try fileManager.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
+    } catch {
+      return nil
+    }
 
-    return filePath
+    url = url.appendingPathComponent("\(assetId.replacingOccurrences(of: "/", with: "."))")
+    let filePath: String = url.path
+    let result: Bool = fileManager.createFile(atPath: filePath, contents: imageData, attributes: nil)
+    if(result) {
+      return filePath
+    }
+    return nil
   }
 
   public static func thumbnailFile(_ assetId: String, _ width: Int, _ height: Int, _ quality: Int, _ result: @escaping FlutterResult) {

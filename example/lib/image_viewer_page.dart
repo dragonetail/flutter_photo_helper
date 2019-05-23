@@ -1,5 +1,4 @@
-import 'dart:typed_data';
-import 'package:flutter/services.dart';
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_photo_helper/flutter_photo_helper.dart';
 import 'package:transparent_image/transparent_image.dart';
@@ -37,14 +36,40 @@ class _ImageViewerState extends State<ImageViewerPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text('Photo Asset'),
+        actions: <Widget>[
+          new IconButton(
+            // action button
+            icon: new Icon(Icons.directions_car),
+            onPressed: _testThumbnailFile,
+          ),
+          new IconButton(
+            // action button
+            icon: new Icon(Icons.directions_bike),
+            onPressed: _testOriginalFile,
+          ),
+          new PopupMenuButton<Choice>(
+            // overflow menu
+            onSelected: (choice) {},
+            itemBuilder: (BuildContext context) {
+              return choices.map((Choice choice) {
+                return new PopupMenuItem<Choice>(
+                  value: choice,
+                  child: ListTile(
+                      leading: Icon(choice.icon), title: Text(choice.title)),
+                );
+              }).toList();
+            },
+          ),
+        ],
       ),
       body: PageView.builder(
         controller: pageController,
         itemBuilder: _buildItem,
         itemCount: widget.assets.length,
-        onPageChanged: _onPageChanged,
+        //onPageChanged: _onPageChanged,
       ),
     );
   }
@@ -67,73 +92,50 @@ class _ImageViewerState extends State<ImageViewerPage> {
     );
     //     BigPhotoImage(
     //   asset: asset,
-    //   loadingWidget: _buildLoadingWidget(asset),
+    //   loadingWidget: _buildLoadingWidget(),
     // );
   }
 
-  Widget _buildLoadingWidget(DeviceAsset asset) {
-    return Center(
-      child: Container(
-        width: 30.0,
-        height: 30.0,
-        // child: CircularProgressIndicator(
-        //   valueColor: AlwaysStoppedAnimation(Colors.green),
-        // ),
-      ),
-    );
+  void _testThumbnailFile() async {
+    int index = pageController.page.toInt();
+    DeviceAsset asset = widget.assets[index];
+    File thumbFile = await FlutterPhotoHelper.thumbnailFile(asset.id, 200, 200);
+
+    print(thumbFile.path);
+
+    _listTemp("/thumb");
   }
 
-  void _onPageChanged(int value) {
-    //pageChangeController.add(value);
+  void _testOriginalFile() async {
+    int index = pageController.page.toInt();
+    DeviceAsset asset = widget.assets[index];
+    File originalFile = await FlutterPhotoHelper.originalFile(asset.id);
+
+    print(originalFile.path);
+    _listTemp("/original");
+  }
+
+  void _listTemp(String subDir) {
+    var systemTempDir = Directory(Directory.systemTemp.path + subDir);
+    systemTempDir
+        .list(recursive: true, followLinks: false)
+        .listen((FileSystemEntity entity) {
+      print(entity.path);
+    });
   }
 }
 
-class BigPhotoImage extends StatefulWidget {
-  final DeviceAsset asset;
-  final Widget loadingWidget;
-
-  const BigPhotoImage({
-    Key key,
-    this.asset,
-    this.loadingWidget,
-  }) : super(key: key);
-
-  @override
-  _BigPhotoImageState createState() => _BigPhotoImageState();
+class Choice {
+  const Choice({this.title, this.icon});
+  final String title;
+  final IconData icon;
 }
 
-class _BigPhotoImageState extends State<BigPhotoImage>
-    with AutomaticKeepAliveClientMixin {
-  Widget get loadingWidget {
-    return widget.loadingWidget ?? Container();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    var width = (MediaQuery.of(context).size.width * 2).floor();
-    var height = (MediaQuery.of(context).size.height * 2).floor();
-    //print("requestThumbnail: ${widget.asset.id}");
-    return FutureBuilder(
-      future: FlutterPhotoHelper.thumbnail(widget.asset.id, width, height),
-      builder: (BuildContext context, AsyncSnapshot<ByteData> snapshot) {
-        var futureData = snapshot.data;
-        if (snapshot.connectionState == ConnectionState.done &&
-            futureData != null) {
-          // print(
-          //     "requestThumbnail' result: ${widget.asset.id}, ${futureData.lengthInBytes}");
-          Uint8List data = futureData.buffer.asUint8List();
-          return Image.memory(
-            data,
-            fit: BoxFit.contain,
-            width: double.infinity,
-            height: double.infinity,
-          );
-        }
-        return loadingWidget;
-      },
-    );
-  }
-
-  @override
-  bool get wantKeepAlive => true;
-}
+const List<Choice> choices = const <Choice>[
+  const Choice(title: 'Car', icon: Icons.directions_car),
+  const Choice(title: 'Bicycle', icon: Icons.directions_bike),
+  const Choice(title: 'Boat', icon: Icons.directions_boat),
+  const Choice(title: 'Bus', icon: Icons.directions_bus),
+  const Choice(title: 'Train', icon: Icons.directions_railway),
+  const Choice(title: 'Walk', icon: Icons.directions_walk),
+];

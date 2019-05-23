@@ -187,4 +187,25 @@ class FlutterPhotoHelper {
           "Not supported platform: ${Platform.operatingSystem}");
     }
   }
+
+  static void startHandleNotify() {
+    _channel.setMethodCallHandler(_notify);
+  }
+
+  /// stop handle notify
+  static void stopHandleNotify() {
+    _channel.setMethodCallHandler(null);
+  }
+
+  static Future<dynamic> _notify(MethodCall call) async {
+    print("call.method = ${call.method}");
+    if (call.method == "change") {
+      _onChange(call);
+    }
+    return 1;
+  }
+
+  static Future<dynamic> _onChange(MethodCall call) async {
+    print("_onChange = ${call.method}");
+  }
 }
