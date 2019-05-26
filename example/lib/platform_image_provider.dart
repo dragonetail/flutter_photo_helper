@@ -8,15 +8,18 @@ import 'package:flutter/painting.dart';
 import 'package:flutter_photo_helper/flutter_photo_helper.dart';
 
 class PlatformImageProvider extends ImageProvider<PlatformImageProvider> {
-  const PlatformImageProvider(this.assetId,
+  const PlatformImageProvider(this.id, this.assetId,
       {this.width, this.height, this.scale = 1.0})
-      : cacheKey = "$assetId${width}x$height",
+      : cacheKey = "$id${width}x$height",
+        assert(id != null),
         assert(assetId != null),
         assert(scale != null);
 
   static ImageLruCache<String> thumbnailCache = ImageLruCache<String>(500);
 
   /// The bytes to decode into an image.
+  ///
+  final String id;
   final String assetId;
 
   /// The scale to place in the [ImageInfo] object of the image.
@@ -53,11 +56,10 @@ class PlatformImageProvider extends ImageProvider<PlatformImageProvider> {
     if (data == null) {
       //print("requestThumbnail: $section:$row, $assetId");
       ByteData byteData =
-          await FlutterPhotoHelper.thumbnail(assetId, width, height);
+          await FlutterPhotoHelper.thumbnail(id, assetId, width, height);
       data = byteData.buffer.asUint8List();
       if (data.lengthInBytes == 0) {
-        throw Exception(
-            'PlatformImage is an empty file: $assetId');
+        throw Exception('PlatformImage is an empty file: $assetId');
       }
       thumbnailCache.setData(cacheKey, data);
     }

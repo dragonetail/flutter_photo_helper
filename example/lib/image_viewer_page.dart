@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_photo_helper/flutter_photo_helper.dart';
-import 'package:transparent_image/transparent_image.dart';
+import './transparent_image.dart';
 import './platform_image_provider.dart';
 
 class ImageViewerPage extends StatefulWidget {
@@ -81,7 +81,8 @@ class _ImageViewerState extends State<ImageViewerPage> {
     var asset = widget.assets[index];
     return FadeInImage(
       placeholder: MemoryImage(kTransparentImage),
-      image: PlatformImageProvider(asset.id, width: width, height: height),
+      image: PlatformImageProvider(asset.id, asset.assetId,
+          width: width, height: height),
       fit: BoxFit.contain,
       width: double.infinity,
       height: double.infinity,
@@ -99,7 +100,8 @@ class _ImageViewerState extends State<ImageViewerPage> {
   void _testThumbnailFile() async {
     int index = pageController.page.toInt();
     DeviceAsset asset = widget.assets[index];
-    File thumbFile = await FlutterPhotoHelper.thumbnailFile(asset.id, 200, 200);
+    File thumbFile = await FlutterPhotoHelper.thumbnailFile(
+        asset.id, asset.assetId, 200, 200);
 
     print(thumbFile.path);
 
@@ -109,7 +111,8 @@ class _ImageViewerState extends State<ImageViewerPage> {
   void _testOriginalFile() async {
     int index = pageController.page.toInt();
     DeviceAsset asset = widget.assets[index];
-    File originalFile = await FlutterPhotoHelper.originalFile(asset.id);
+    File originalFile =
+        await FlutterPhotoHelper.originalFile(asset.id, asset.assetId);
 
     print(originalFile.path);
     _listTemp("/original");

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_photo_helper/flutter_photo_helper.dart';
 import './asset_list_page.dart';
+import './not_permission_dialog.dart';
 
 class AssetPathListPage extends StatefulWidget {
   static const route = '/assetPathList';
@@ -21,7 +22,18 @@ class _AssetPathListState extends State<AssetPathListPage> {
   }
 
   void _loadAssetPathes() async {
-    await FlutterPhotoHelper.permissions;
+    PermissionStatus status = await FlutterPhotoHelper.permissions;
+    if (!status.granted) {
+      var result = await showDialog(
+        context: context,
+        builder: (ctx) => NotPermissionDialog(),
+      );
+      if (result == true) {
+        FlutterPhotoHelper.openSetting();
+      }
+      return null;
+    }
+
     _deviceAssetPathes = await FlutterPhotoHelper.deviceAssetPathes;
 
     FlutterPhotoHelper.startHandleNotify();
@@ -55,7 +67,8 @@ class _AssetPathListState extends State<AssetPathListPage> {
 
   Widget _buildRow(DeviceAssetPath path) {
     return new ListTile(
-        title: new Text("${path.name} (${path.count})", style: TextStyle(fontSize: 18.0)),
+        title: new Text("${path.name} (${path.count})",
+            style: TextStyle(fontSize: 18.0)),
         subtitle: new Text(path.id),
         onTap: () {
           Navigator.of(context).push(

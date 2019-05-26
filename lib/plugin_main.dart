@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import './device/device_asset_path.dart';
 import './device/device_asset.dart';
 import './device/device_grouped_assets.dart';
+import './device/permission_status.dart';
 
 class FlutterPhotoHelper {
   static const String _plugin_name = 'flutter_photo_helper';
@@ -17,9 +18,14 @@ class FlutterPhotoHelper {
 
   /// android: WRITE_EXTERNAL_STORAGE  READ_EXTERNAL_STORAGE
   /// ios: photos permission
-  static Future<bool> get permissions async {
-    var result = await _channel.invokeMethod("permissions");
-    return result;
+  static Future<PermissionStatus> get permissions async {
+    Map<dynamic, dynamic> result = await _channel.invokeMethod("permissions");
+
+    return PermissionStatus(result);
+  }
+
+  static void openSetting() {
+    _channel.invokeMethod("openSetting");
   }
 
   static Future<List<DeviceAssetPath>> get deviceAssetPathes async {
@@ -57,6 +63,7 @@ class FlutterPhotoHelper {
           DateTime.fromMillisecondsSinceEpoch(item['modificationDate'] ?? 0);
       var asset = DeviceAsset(
         id: item['id'],
+        assetId: item['assetId'],
         type: AssetType.unknown,
         creationDate: creationDate,
         modificationDate: modificationDate,
@@ -82,14 +89,16 @@ class FlutterPhotoHelper {
     return groupedAssets;
   }
 
-  static Future<ByteData> thumbnail(String assetId, int width, int height,
+  static Future<ByteData> thumbnail(
+      String id, String assetId, int width, int height,
       {int quality = 100}) async {
+    assert(id != null);
     assert(assetId != null);
     assert(width != null && width >= 0);
     assert(height != null && height >= 0);
     assert(quality != null && quality >= 0 && quality <= 100);
 
-    String _thumbChannel = '$_plugin_name/image/$assetId.thumb';
+    String _thumbChannel = '$_plugin_name/image/$id.thumb';
     Completer<ByteData> completer = new Completer<ByteData>();
     BinaryMessages.setMessageHandler(_thumbChannel, (ByteData message) {
       completer.complete(message);
@@ -97,6 +106,7 @@ class FlutterPhotoHelper {
     });
 
     bool result = await _channel.invokeMethod("thumbnail", <String, dynamic>{
+      "id": id,
       "assetId": assetId,
       "width": width,
       "height": height,
@@ -111,11 +121,13 @@ class FlutterPhotoHelper {
     }
   }
 
-  static Future<ByteData> original(String assetId, {int quality = 100}) async {
+  static Future<ByteData> original(String id, String assetId,
+      {int quality = 100}) async {
+    assert(id != null);
     assert(assetId != null);
     assert(quality != null && quality >= 0 && quality <= 100);
 
-    String _thumbChannel = '$_plugin_name/image/$assetId.original';
+    String _thumbChannel = '$_plugin_name/image/$id.original';
     Completer<ByteData> completer = new Completer<ByteData>();
     BinaryMessages.setMessageHandler(_thumbChannel, (ByteData message) {
       completer.complete(message);
@@ -123,6 +135,7 @@ class FlutterPhotoHelper {
     });
 
     bool result = await _channel.invokeMethod("original", <String, dynamic>{
+      "id": id,
       "assetId": assetId,
       "quality": quality,
     });
@@ -135,8 +148,10 @@ class FlutterPhotoHelper {
     }
   }
 
-  static Future<File> thumbnailFile(String assetId, int width, int height,
+  static Future<File> thumbnailFile(
+      String id, String assetId, int width, int height,
       {int quality = 100}) async {
+    assert(id != null);
     assert(assetId != null);
     assert(width != null && width >= 0);
     assert(height != null && height >= 0);
@@ -145,8 +160,9 @@ class FlutterPhotoHelper {
     if (Platform.isAndroid) {
       return File(assetId);
     } else if (Platform.isIOS) {
-      String path = await _channel.invokeMethod(
-          "thumbnailFile", <String, dynamic>{
+      String path =
+          await _channel.invokeMethod("thumbnailFile", <String, dynamic>{
+        "id": id,
         "assetId": assetId,
         "width": width,
         "height": height,
@@ -164,7 +180,9 @@ class FlutterPhotoHelper {
     }
   }
 
-  static Future<File> originalFile(String assetId, {int quality = 100}) async {
+  static Future<File> originalFile(String id, String assetId,
+      {int quality = 100}) async {
+    assert(id != null);
     assert(assetId != null);
     assert(quality != null && quality >= 0 && quality <= 100);
 
@@ -173,6 +191,7 @@ class FlutterPhotoHelper {
     } else if (Platform.isIOS) {
       String path =
           await _channel.invokeMethod("originalFile", <String, dynamic>{
+        "id": id,
         "assetId": assetId,
         "quality": quality,
       });

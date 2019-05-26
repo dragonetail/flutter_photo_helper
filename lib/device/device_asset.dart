@@ -1,9 +1,8 @@
 enum AssetType { unknown, image, video, audio }
 
 class DeviceAsset {
-  /// android: full path
-  /// ios: asset id
   String id;
+  String assetId;
   AssetType type;
   DateTime creationDate;
   DateTime modificationDate;
@@ -13,11 +12,21 @@ class DeviceAsset {
   double latitude;
   double longitude;
 
-  DeviceAsset({this.id, this.type, this.creationDate,this.modificationDate, this.pixelWidth, this.pixelHeight, this.duration, this.latitude,this.longitude});
+  DeviceAsset(
+      {this.id,
+      this.assetId,
+      this.type,
+      this.creationDate,
+      this.modificationDate,
+      this.pixelWidth,
+      this.pixelHeight,
+      this.duration,
+      this.latitude,
+      this.longitude});
 
   @override
   int get hashCode {
-    return id.hashCode;
+    return assetId.hashCode;
   }
 
   @override
@@ -25,11 +34,11 @@ class DeviceAsset {
     if (other is! DeviceAsset) {
       return false;
     }
-    return this.id == other.id;
+    return this.assetId == other.assetId;
   }
 
   @override
   String toString() {
-    return "AssetEntity{id:$id}";
+    return "AssetEntity{assetId:$assetId}";
   }
 }

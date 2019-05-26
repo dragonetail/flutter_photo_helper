@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_photo_helper/flutter_photo_helper.dart';
 import './selected_provider.dart';
 import './thumbnail_image_mask.dart';
-import 'package:transparent_image/transparent_image.dart';
 import './platform_image_provider.dart';
+import './transparent_image.dart';
 
 class ThumbnailImageItem extends StatelessWidget {
   final int section;
@@ -64,7 +64,7 @@ class ThumbnailImageItem extends StatelessWidget {
         Center(
           child: FadeInImage(
             placeholder: MemoryImage(kTransparentImage),
-            image: PlatformImageProvider(asset.id,
+            image: PlatformImageProvider(asset.id, asset.assetId,
                 width: 200, height: 200),
             width: 200,
             height: 200,

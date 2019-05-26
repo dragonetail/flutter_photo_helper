@@ -11,7 +11,9 @@ public class PhotosHelper: NSObject {
       let authorizationStatus = PHPhotoLibrary.authorizationStatus()
       if authorizationStatus == .authorized {
         DispatchQueue.main.async {
-          result(true)
+          result([
+            "granted": true,
+            ])
         }
       } else {
         //print("Start to requestAuthorization...")
@@ -19,11 +21,18 @@ public class PhotosHelper: NSObject {
           //print("Result of requestAuthorization: \(status)")
           if status == .authorized {
             DispatchQueue.main.async {
-              result(true)
+              result([
+                "permantentlyDenied": true,
+                 //TODO
+                "denied": true,
+                "deniedPermissions": [String](),
+                ])
             }
           } else {
             DispatchQueue.main.async {
-              result(false)
+              result([
+                "granted": true,
+                ])
             }
           }
         })
@@ -75,7 +84,8 @@ public class PhotosHelper: NSObject {
       let itemsFetchResult = PHAsset.fetchAssets(in: collection, options: fetchOptions)
       itemsFetchResult.enumerateObjects({ (asset, _, _) in
         assets.append([
-          "id": asset.localIdentifier,
+          "id": asset.localIdentifier.components(separatedBy: "/")[0],
+          "assetId": asset.localIdentifier,
           "type": asset.mediaType.rawValue,
           "creationDate": Int((asset.creationDate?.timeIntervalSince1970 ?? 0) * 1000),
           "modificationDate": Int((asset.modificationDate?.timeIntervalSince1970 ?? 0) * 1000),
@@ -92,15 +102,15 @@ public class PhotosHelper: NSObject {
     }
   }
 
-  public static func thumbnail(_ assetId: String, _ width: Int, _ height: Int, _ quality: Int, _ result: @escaping FlutterResult, _ messenger: FlutterBinaryMessenger) {
-    requestImage(assetId, CGSize(width: width, height: height), quality, "thumb", result, messenger)
+  public static func thumbnail(_ id: String, _ assetId: String, _ width: Int, _ height: Int, _ quality: Int, _ result: @escaping FlutterResult, _ messenger: FlutterBinaryMessenger) {
+    requestImage(id, assetId, CGSize(width: width, height: height), quality, "thumb", result, messenger)
   }
 
-  public static func original(_ assetId: String, _ quality: Int, _ result: @escaping FlutterResult, _ messenger: FlutterBinaryMessenger) {
-    requestImage(assetId, PHImageManagerMaximumSize, quality, "original", result, messenger)
+  public static func original(_ id: String, _ assetId: String, _ quality: Int, _ result: @escaping FlutterResult, _ messenger: FlutterBinaryMessenger) {
+    requestImage(id, assetId, PHImageManagerMaximumSize, quality, "original", result, messenger)
   }
 
-  fileprivate static func requestImage(_ assetId: String, _ targetSize: CGSize, _ quality: Int, _ dataBackChannelSuffix: String, _ result: @escaping FlutterResult, _ messenger: FlutterBinaryMessenger?) {
+  fileprivate static func requestImage(_ id: String, _ assetId: String, _ targetSize: CGSize, _ quality: Int, _ dataBackChannelSuffix: String, _ result: @escaping FlutterResult, _ messenger: FlutterBinaryMessenger?) {
     DispatchQueue.global(qos: .userInitiated).async {
       let options = PHImageRequestOptions()
 
@@ -141,10 +151,10 @@ public class PhotosHelper: NSObject {
           let imageData: Data? = image?.jpegData(compressionQuality: CGFloat(quality / 100))
 
           if let messenger = messenger {
-            messenger.send(onChannel: "\(SwiftFlutterPhotoHelperPlugin.plugin_name)/image/\(assetId).\(dataBackChannelSuffix)", message:
+            messenger.send(onChannel: "\(SwiftFlutterPhotoHelperPlugin.plugin_name)/image/\(id).\(dataBackChannelSuffix)", message:
               imageData)
           } else {
-            let filePath: String? = writeToFile(assetId, dataBackChannelSuffix, imageData)
+            let filePath: String? = writeToFile(id, assetId, dataBackChannelSuffix, imageData)
             result(filePath)
           }
         })
@@ -165,7 +175,7 @@ public class PhotosHelper: NSObject {
     }
   }
 
-  fileprivate static func writeToFile(_ assetId: String, _ dataBackChannelSuffix: String, _ imageData: Data?) -> String? {
+  fileprivate static func writeToFile(_ id: String, _ assetId: String, _ dataBackChannelSuffix: String, _ imageData: Data?) -> String? {
     var url = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(dataBackChannelSuffix)")
     do {
       try fileManager.createDirectory(at: url, withIntermediateDirectories: true, attributes: nil)
@@ -173,7 +183,7 @@ public class PhotosHelper: NSObject {
       return nil
     }
 
-    url = url.appendingPathComponent("\(assetId.replacingOccurrences(of: "/", with: "."))")
+    url = url.appendingPathComponent("\(id)")
     let filePath: String = url.path
     let result: Bool = fileManager.createFile(atPath: filePath, contents: imageData, attributes: nil)
     if(result) {
@@ -182,12 +192,12 @@ public class PhotosHelper: NSObject {
     return nil
   }
 
-  public static func thumbnailFile(_ assetId: String, _ width: Int, _ height: Int, _ quality: Int, _ result: @escaping FlutterResult) {
-    requestImage(assetId, CGSize(width: width, height: height), quality, "thumb", result, nil)
+  public static func thumbnailFile(_ id: String, _ assetId: String, _ width: Int, _ height: Int, _ quality: Int, _ result: @escaping FlutterResult) {
+    requestImage(id, assetId, CGSize(width: width, height: height), quality, "thumb", result, nil)
   }
 
-  public static func originalFile(_ assetId: String, _ quality: Int, _ result: @escaping FlutterResult) {
-    requestImage(assetId, PHImageManagerMaximumSize, quality, "original", result, nil)
+  public static func originalFile(_ id: String, _ assetId: String, _ quality: Int, _ result: @escaping FlutterResult) {
+    requestImage(id, assetId, PHImageManagerMaximumSize, quality, "original", result, nil)
   }
 
 }
