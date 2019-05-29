@@ -20,8 +20,11 @@ class AssetListPage extends StatefulWidget {
 }
 
 class _AssetListState extends State<AssetListPage> with SelectedProvider {
+  static final int batch_size = 6;
+  List<DeviceGroupedAssets> _oriGroupedAssets = List<DeviceGroupedAssets>();
   List<DeviceGroupedAssets> _groupedAssets = List<DeviceGroupedAssets>();
   ScrollController _scrollController = ScrollController();
+  bool isPerformingRequest = false;
 
   @override
   void initState() {
@@ -32,24 +35,52 @@ class _AssetListState extends State<AssetListPage> with SelectedProvider {
 
   void _loadAssetes(BuildContext context) async {
     final String assetPathId = widget._assetPathId;
-    List<DeviceGroupedAssets> assets =
-        await FlutterPhotoHelper.deviceAssets(assetPathId);
+    _oriGroupedAssets = await FlutterPhotoHelper.deviceAssets(assetPathId);
+
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels ==
+          _scrollController.position.maxScrollExtent) {
+        _getMoreData();
+      }
+    });
 
     if (this.mounted) {
-      int counts = assets.length;
-      if (counts <= 6) {
-        _groupedAssets = assets;
-        setState(() {});
-      } else {
-        _groupedAssets = assets.sublist(0, 6);
-        setState(() {});
-
-        Future.delayed(new Duration(milliseconds: 500), () {
-          _groupedAssets = assets;
-          setState(() {});
-        });
-      }
+      _getMoreData();
     }
+  }
+
+  _getMoreData() async {
+    int start = _groupedAssets.length;
+    int targetEnd = _oriGroupedAssets.length;
+    if (start == targetEnd) {
+      return;
+    }
+
+    if (!isPerformingRequest) {
+      setState(() => isPerformingRequest = true);
+
+      int end = start + batch_size;
+      if (end > targetEnd) {
+        end = targetEnd;
+      }
+      List<DeviceGroupedAssets> sublist = _oriGroupedAssets.sublist(start, end);
+      setState(() {
+        _groupedAssets.addAll(sublist);
+        isPerformingRequest = false;
+      });
+    }
+  }
+
+  Widget _buildProgressIndicator() {
+    return new Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: new Center(
+        child: new Opacity(
+          opacity: isPerformingRequest ? 1.0 : 0.0,
+          child: new CircularProgressIndicator(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -132,7 +163,7 @@ class _AssetListState extends State<AssetListPage> with SelectedProvider {
   Widget _buildItem(BuildContext context, int section, int row) {
     var assets = _groupedAssets[section].assets;
     DeviceAsset asset = assets[row];
-    //print("_buildItem: $section:$row, ${asset.id}");
+    print("_buildItem: $section:$row, ${asset.id}");
 
     return ThumbnailImageItem(
       section: section,

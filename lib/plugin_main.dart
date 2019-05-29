@@ -99,10 +99,12 @@ class FlutterPhotoHelper {
     assert(quality != null && quality >= 0 && quality <= 100);
 
     String _thumbChannel = '$_plugin_name/image/$id.thumb';
+    print("Waiting for channel: $_thumbChannel");
     Completer<ByteData> completer = new Completer<ByteData>();
     BinaryMessages.setMessageHandler(_thumbChannel, (ByteData message) {
+      print("Waited for channel: $_thumbChannel ${message.lengthInBytes}");
       completer.complete(message);
-      BinaryMessages.setMessageHandler(_thumbChannel, null);
+      //BinaryMessages.setMessageHandler(_thumbChannel, null);
     });
 
     bool result = await _channel.invokeMethod("thumbnail", <String, dynamic>{

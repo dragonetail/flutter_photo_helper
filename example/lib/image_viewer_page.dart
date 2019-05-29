@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_photo_helper/flutter_photo_helper.dart';
 import './transparent_image.dart';
 import './platform_image_provider.dart';
+import 'dart:typed_data';
 
 class ImageViewerPage extends StatefulWidget {
   static const route = '/imageViewer';
@@ -79,22 +80,23 @@ class _ImageViewerState extends State<ImageViewerPage> {
     var height = (MediaQuery.of(context).size.height * 2).floor();
 
     var asset = widget.assets[index];
-    return FadeInImage(
-      placeholder: MemoryImage(kTransparentImage),
-      image: PlatformImageProvider(asset.id, asset.assetId,
-          width: width, height: height),
-      fit: BoxFit.contain,
-      width: double.infinity,
-      height: double.infinity,
-      fadeOutDuration: const Duration(milliseconds: 0),
-      fadeOutCurve: Curves.easeOut,
-      fadeInDuration: const Duration(milliseconds: 0),
-      fadeInCurve: Curves.elasticIn,
-    );
-    //     BigPhotoImage(
-    //   asset: asset,
-    //   loadingWidget: _buildLoadingWidget(),
+    return 
+    // FadeInImage(
+    //   placeholder: MemoryImage(kTransparentImage),
+    //   image: PlatformImageProvider(asset.id, asset.assetId,
+    //       width: width, height: height, scale: 1.0),
+    //   fit: BoxFit.cover,
+    //   width: MediaQuery.of(context).size.width,
+    //   height: MediaQuery.of(context).size.height,
+    //   fadeOutDuration: const Duration(milliseconds: 0),
+    //   fadeOutCurve: Curves.easeOut,
+    //   fadeInDuration: const Duration(milliseconds: 0),
+    //   fadeInCurve: Curves.elasticIn,
     // );
+        BigPhotoImage(
+      asset: asset,
+      //loadingWidget: _buildLoadingWidget(),
+    );
   }
 
   void _testThumbnailFile() async {
@@ -142,3 +144,56 @@ const List<Choice> choices = const <Choice>[
   const Choice(title: 'Train', icon: Icons.directions_railway),
   const Choice(title: 'Walk', icon: Icons.directions_walk),
 ];
+
+
+class BigPhotoImage extends StatefulWidget {
+  final DeviceAsset asset;
+  final Widget loadingWidget;
+
+  const BigPhotoImage({
+    Key key,
+    this.asset,
+    this.loadingWidget,
+  }) : super(key: key);
+
+  @override
+  _BigPhotoImageState createState() => _BigPhotoImageState();
+}
+
+class _BigPhotoImageState extends State<BigPhotoImage>
+    with AutomaticKeepAliveClientMixin {
+  Widget get loadingWidget {
+    return widget.loadingWidget ?? Container();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    var width = (MediaQuery.of(context).size.width *2).floor();
+    var height = (MediaQuery.of(context).size.height * 2).floor();
+    print("original: ${widget.asset.id}");
+    return FutureBuilder(
+      future:
+           FlutterPhotoHelper.thumbnail(widget.asset.id, widget.asset.assetId, width, height),
+           //FlutterPhotoHelper.original(widget.asset.id, widget.asset.assetId),
+      builder: (BuildContext context, AsyncSnapshot<ByteData> snapshot) {
+        var futureData = snapshot.data;
+        if (snapshot.connectionState == ConnectionState.done &&
+            futureData != null) {
+          print(
+              "original' result: ${widget.asset.assetId}, ${futureData.lengthInBytes}");
+          Uint8List data = futureData.buffer.asUint8List();
+          return Image.memory(
+            data,
+            fit: BoxFit.contain,
+            width: double.infinity,
+            height: double.infinity,
+          );
+        }
+        return loadingWidget;
+      },
+    );
+  }
+
+  @override
+  bool get wantKeepAlive => true;
+}

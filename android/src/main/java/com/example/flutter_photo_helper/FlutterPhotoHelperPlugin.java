@@ -72,22 +72,52 @@ public class FlutterPhotoHelperPlugin implements MethodCallHandler {
       case "deviceAssetPathes":
         MediaHelper.deviceAssetPathes(contentResolver, result);
         break;
-      case "deviceAssets":
+      case "deviceAssets": {
         String assetPathId = call.arguments();
         MediaHelper.deviceAssets(assetPathId, contentResolver, result);
         break;
-      case "thumbnail":
+      }
+      case "thumbnail": {
         String id = call.argument("id");
         String assetId = call.argument("assetId");
         Integer width = call.argument("width");
         Integer height = call.argument("height");
         Integer quality = call.argument("quality");
 
-        MediaHelper.thumbnail(id, assetId, width, height, quality, result, messenger);
-        break;
-      case "original":
+        Log.d("thumbnail", id + ", " + assetId);
+        ImageTask task = new ImageTask(
+            this.contentResolver,
+            this.messenger,
+            id,
+            assetId,
+            width,
+            height,
+            quality,
+            ".thumb"
+        );
+        task.execute();
         result.success(true);
         break;
+      }
+      case "original": {
+        String id = call.argument("id");
+        String assetId = call.argument("assetId");
+        Integer quality = call.argument("quality");
+
+        ImageTask task = new ImageTask(
+            this.contentResolver,
+            this.messenger,
+            id,
+            assetId,
+            -1,
+            -1,
+            quality,
+            ".original"
+        );
+        task.execute();
+        result.success(true);
+        break;
+      }
       case "thumbnailFile":
         result.success("");
         break;
@@ -110,16 +140,17 @@ public class FlutterPhotoHelperPlugin implements MethodCallHandler {
             for (String permission : deniedPermissions) {
               Log.w("permission", "onPermantentlyDenied: " + permission);
             }
-            Map<String,Object>model = new HashMap<String,Object>();
+            Map<String, Object> model = new HashMap<String, Object>();
             model.put("permantentlyDenied", true);
             model.put("deniedPermissions", deniedPermissions);
             result.success(model);
           }
+
           public void onDenied(ArrayList<String> deniedPermissions) {
             for (String permission : deniedPermissions) {
               Log.w("permission", "onDenied: " + permission);
             }
-            Map<String,Object>model = new HashMap<String,Object>();
+            Map<String, Object> model = new HashMap<String, Object>();
             model.put("denied", true);
             model.put("deniedPermissions", deniedPermissions);
             result.success(model);
@@ -127,13 +158,12 @@ public class FlutterPhotoHelperPlugin implements MethodCallHandler {
 
           public void onGranted() {
             Log.i("permission", "onGranted");
-            Map<String,Object>model = new HashMap<String,Object>();
+            Map<String, Object> model = new HashMap<String, Object>();
             model.put("granted", true);
             result.success(model);
           }
         }
     );
   }
-
 }
  

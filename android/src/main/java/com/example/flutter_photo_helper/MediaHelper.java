@@ -44,7 +44,7 @@ public class MediaHelper {
                     MediaStore.Images.Media.DATA,
                     "COUNT(*) AS " + COLUMN_NAME_COUNT
                 },
-                " GROUP BY (" + MediaStore.Images.Media.BUCKET_ID + ")",
+                " 1=1 ) GROUP BY (" + MediaStore.Images.Media.BUCKET_ID,
                 null,
                 COLUMN_NAME_COUNT + " DESC");
         assert cursor != null;
@@ -128,6 +128,7 @@ public class MediaHelper {
               cursor.getInt(cursor.getColumnIndex(MediaStore.Images.Media.HEIGHT));
           long creationDate =
               cursor.getLong(cursor.getColumnIndex(MediaStore.Images.Media.DATE_TAKEN));
+
           double duration = 0.0;
 
           HashMap<String, Object> asset = new HashMap<String, Object>();
@@ -152,43 +153,6 @@ public class MediaHelper {
         result.success(assets);
       }
     });
-  }
-
-
-  public static void thumbnail(final String id, final String assetId, final int width,
-                               final int height, final int quality,
-                               final MethodChannel.Result result,
-                               final BinaryMessenger messenger) {
-    threadPoolExecutor.execute(new Runnable() {
-      @Override
-      public void run() {
-
-        byte[] data = getThumbData(assetId, width, height, quality);
-
-        if (data == null) {
-          Log.w(TAG, "thumbnail:" + assetId + " data is null.");
-          result.success(false);
-          return;
-        }
-
-        Log.d(TAG, "thumbnail:" + assetId + ", " + data.length);
-        String channel = FlutterPhotoHelperPlugin.PLUGIN_NAME + "/image/" + id + ".thumb";
-        messenger.send(channel, ByteBuffer.wrap(data));
-
-        result.success(true);
-      }
-    });
-  }
-
-
-  private static byte[] getThumbData(String assetPath, int width, int height, int quality) {
-    Bitmap bitmap = ThumbnailUtils.extractThumbnail(BitmapFactory.decodeFile(assetPath), width, height);
-    if (bitmap == null) {
-      return null;
-    }
-    ByteArrayOutputStream bos = new ByteArrayOutputStream();
-    bitmap.compress(Bitmap.CompressFormat.JPEG, quality, bos);
-    return bos.toByteArray();
   }
 
 }

@@ -23,6 +23,7 @@ class ThumbnailImageItem extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print("ThumbnailImageItem: $section:$row, ${asset.id}");
     return RepaintBoundary(
       child: GridTile(
         child: Card(
